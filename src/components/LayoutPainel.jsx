@@ -3,22 +3,49 @@ import {
   House,
   LogOut,
   NotebookPen,
+  BarChart3,
   Route as RouteIcon
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import ProfileSimulator from "./ProfileSimulator";
 
 const menuItems = [
-  { to: "/painel", label: "Início", icon: House, end: true },
-  { to: "/painel/prontuarios", label: "Prontuários", icon: NotebookPen },
+  {
+    to: "/painel",
+    label: "Início",
+    icon: House,
+    end: true,
+    profiles: ["Atendente", "NPJ", "Psicologia", "Equipe Técnica"]
+  },
+  {
+    to: "/painel/prontuarios",
+    label: "Prontuários",
+    icon: NotebookPen,
+    profiles: ["Psicologia", "Equipe Técnica"]
+  },
   {
     to: "/painel/encaminhamentos",
     label: "Encaminhamentos",
-    icon: RouteIcon
+    icon: RouteIcon,
+    profiles: ["Atendente", "NPJ", "Psicologia", "Equipe Técnica"]
+  },
+  {
+    to: "/painel/relatorios",
+    label: "Relatórios",
+    icon: BarChart3,
+    profiles: ["Equipe Técnica"]
   }
 ];
 
 export default function LayoutPainel() {
+  const { profile } = useAuth();
+
+  const visibleMenuItems = menuItems.filter((item) =>
+    item.profiles.includes(profile)
+  );
+
   const handleFeatureInProgress = () => {
     toast("Funcionalidade em desenvolvimento.", { icon: "ℹ️" });
   };
@@ -32,8 +59,12 @@ export default function LayoutPainel() {
         </div>
 
         <nav className="flex-1 space-y-1" aria-label="Menu interno">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const Icon = item.icon;
+            const menuLabel =
+              profile === "NPJ" && item.to === "/painel/encaminhamentos"
+                ? "Encaminhamentos (NPJ)"
+                : item.label;
 
             return (
               <NavLink
@@ -47,7 +78,7 @@ export default function LayoutPainel() {
                 }
               >
                 <Icon size={16} />
-                {item.label}
+                {menuLabel}
               </NavLink>
             );
           })}
@@ -64,6 +95,9 @@ export default function LayoutPainel() {
       </aside>
 
       <main className="ml-64 p-6 md:p-8">
+        <div className="mb-6 flex justify-end">
+          <ProfileSimulator theme="light" />
+        </div>
         <Outlet />
       </main>
     </div>

@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import LayoutPainel from "./components/LayoutPainel";
+import ProtectedPanelRoute from "./components/ProtectedPanelRoute";
 import Agendamento from "./pages/Agendamento";
 import DashboardInicio from "./pages/DashboardInicio";
 import Encaminhamentos from "./pages/Encaminhamentos";
@@ -8,6 +9,7 @@ import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import ProntuarioDetalhes from "./pages/ProntuarioDetalhes";
 import ProntuariosLista from "./pages/ProntuariosLista";
+import Relatorios from "./pages/Relatorios";
 
 export default function App() {
   return (
@@ -20,9 +22,31 @@ export default function App() {
 
       <Route path="/painel" element={<LayoutPainel />}>
         <Route index element={<DashboardInicio />} />
-        <Route path="prontuarios" element={<ProntuariosLista />} />
-        <Route path="prontuarios/:id" element={<ProntuarioDetalhes />} />
+        <Route
+          path="prontuarios"
+          element={
+            <ProtectedPanelRoute allowedProfiles={["Psicologia", "Equipe Técnica"]}>
+              <ProntuariosLista />
+            </ProtectedPanelRoute>
+          }
+        />
+        <Route
+          path="prontuarios/:id"
+          element={
+            <ProtectedPanelRoute allowedProfiles={["Psicologia", "Equipe Técnica"]}>
+              <ProntuarioDetalhes />
+            </ProtectedPanelRoute>
+          }
+        />
         <Route path="encaminhamentos" element={<Encaminhamentos />} />
+        <Route
+          path="relatorios"
+          element={
+            <ProtectedPanelRoute allowedProfiles={["Equipe Técnica"]}>
+              <Relatorios />
+            </ProtectedPanelRoute>
+          }
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
