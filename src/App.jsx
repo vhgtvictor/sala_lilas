@@ -1,9 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
+import LayoutPainel from "./components/LayoutPainel";
 import Agendamento from "./pages/Agendamento";
+import DashboardInicio from "./pages/DashboardInicio";
+import EncaminhamentosPage from "./pages/EncaminhamentosPage";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
-import PainelPage from "./pages/PainelPage";
+import ProntuariosLista from "./pages/ProntuariosLista";
 
 export default function App() {
   return (
@@ -12,9 +15,15 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/agendamento" element={<Agendamento />} />
-        <Route path="/painel" element={<PainelPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+
+      <Route path="/painel" element={<LayoutPainel />}>
+        <Route index element={<DashboardInicio />} />
+        <Route path="prontuarios" element={<ProntuariosLista />} />
+        <Route path="encaminhamentos" element={<EncaminhamentosPage />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
