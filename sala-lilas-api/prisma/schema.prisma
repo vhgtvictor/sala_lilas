@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum PerfilUsuario {
+  ATENDENTE
+  NPJ
+  PSICOLOGIA
+  EQUIPE_TECNICA
+}
+
+enum StatusAgendamento {
+  PENDENTE
+  CONFIRMADO
+  CANCELADO
+}
+
+enum SetorDestino {
+  PSICOLOGIA
+  NPJ
+}
+
+enum StatusEncaminhamento {
+  AGUARDANDO
+  EM_ATENDIMENTO
+  FINALIZADO
+}
+
+enum PrioridadeEncaminhamento {
+  ALTA
+  MEDIA
+}
+
+model Usuario {
+  id       Int           @id @default(autoincrement())
+  nome     String
+  email    String        @unique
+  senha    String
+  perfil   PerfilUsuario
+  criadoEm DateTime      @default(now())
+}
+
+model Paciente {
+  id             Int              @id @default(autoincrement())
+  nome           String
+  cpf            String           @unique
+  dataNascimento DateTime
+  numeroProcesso String
+  criadoEm       DateTime         @default(now())
+
+  agendamentos   Agendamento[]
+  prontuario     Prontuario?
+  encaminhamentos Encaminhamento[]
+}
+
+model Agendamento {
+  id          Int               @id @default(autoincrement())
+  dataDesejada DateTime
+  horario     String
+  status      StatusAgendamento @default(PENDENTE)
+  pacienteId  Int
+  criadoEm    DateTime          @default(now())
+
+  paciente    Paciente          @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+}
+
+model Prontuario {
+  id            Int       @id @default(autoincrement())
+  pacienteId    Int       @unique
+  evolucaoGeral String
+  obsPsicologia String
+  statusJuridico String
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+
+  paciente      Paciente  @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+}
+
+model Encaminhamento {
+  id           Int                    @id @default(autoincrement())
+  pacienteId   Int
+  setorDestino SetorDestino
+  status       StatusEncaminhamento   @default(AGUARDANDO)
+  prioridade   PrioridadeEncaminhamento
+  notas        String
+  criadoEm     DateTime               @default(now())
+
+  paciente     Paciente               @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+}
