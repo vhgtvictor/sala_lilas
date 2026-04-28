@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 const patients = [
   {
@@ -36,10 +36,6 @@ export default function ProntuariosLista() {
 
     return patients.filter((patient) => patient.name.toLowerCase().includes(query));
   }, [search]);
-
-  const handleFeatureInProgress = () => {
-    toast("Funcionalidade em desenvolvimento.", { icon: "ℹ️" });
-  };
 
   return (
     <section className="space-y-6">
@@ -92,13 +88,12 @@ export default function ProntuariosLista() {
                   </span>
                 </td>
                 <td className="px-3 py-2">
-                  <button
-                    type="button"
-                    onClick={handleFeatureInProgress}
-                    className="rounded-md bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-700"
+                  <Link
+                    to={`/painel/prontuarios/${encodeURIComponent(patient.name)}`}
+                    className="inline-block rounded-md bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-700"
                   >
                     Ver Detalhes
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))}

@@ -6,6 +6,7 @@ import DashboardInicio from "./pages/DashboardInicio";
 import EncaminhamentosPage from "./pages/EncaminhamentosPage";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
+import ProntuarioDetalhes from "./pages/ProntuarioDetalhes";
 import ProntuariosLista from "./pages/ProntuariosLista";
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/painel" element={<LayoutPainel />}>
         <Route index element={<DashboardInicio />} />
         <Route path="prontuarios" element={<ProntuariosLista />} />
+        <Route path="prontuarios/:id" element={<ProntuarioDetalhes />} />
         <Route path="encaminhamentos" element={<EncaminhamentosPage />} />
       </Route>
 
