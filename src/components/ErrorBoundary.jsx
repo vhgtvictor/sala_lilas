@@ -17,8 +17,13 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-screen" role="alert">
-          <h1>Ops, algo deu errado na interface. Atualize a página.</h1>
+        <div
+          className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center"
+          role="alert"
+        >
+          <h1 className="text-lg font-semibold text-slate-800 md:text-2xl">
+            Ops, algo deu errado na interface. Atualize a página.
+          </h1>
         </div>
       );
     }

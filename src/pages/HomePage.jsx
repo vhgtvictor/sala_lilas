@@ -1,3 +1,3 @@
 export default function HomePage() {
-  return <h1>Página Inicial (provisório)</h1>;
+  return <h1 className="text-2xl font-bold text-slate-800">Página Inicial (provisório)</h1>;
 }

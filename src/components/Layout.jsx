@@ -9,15 +9,20 @@ const navItems = [
 
 export default function Layout() {
   return (
-    <div className="app-shell">
-      <header className="navbar">
-        <nav className="nav-content" aria-label="Navegação principal">
+    <div className="min-h-screen">
+      <header className="bg-purple-600 px-4 py-3">
+        <nav
+          className="mx-auto flex w-full max-w-6xl gap-4"
+          aria-label="Navegação principal"
+        >
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                isActive ? "nav-link nav-link-active" : "nav-link"
+                isActive
+                  ? "rounded-md px-3 py-1.5 text-sm font-semibold text-white"
+                  : "rounded-md px-3 py-1.5 text-sm font-semibold text-purple-100 transition hover:bg-purple-500 hover:text-white"
               }
             >
               {item.label}
@@ -26,7 +31,7 @@ export default function Layout() {
         </nav>
       </header>
 
-      <main className="page-content">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8">
         <Outlet />
       </main>
     </div>
