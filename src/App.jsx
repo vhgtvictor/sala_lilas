@@ -3,7 +3,7 @@ import Layout from "./components/Layout";
 import LayoutPainel from "./components/LayoutPainel";
 import Agendamento from "./pages/Agendamento";
 import DashboardInicio from "./pages/DashboardInicio";
-import EncaminhamentosPage from "./pages/EncaminhamentosPage";
+import Encaminhamentos from "./pages/Encaminhamentos";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import ProntuarioDetalhes from "./pages/ProntuarioDetalhes";
@@ -22,7 +22,7 @@ export default function App() {
         <Route index element={<DashboardInicio />} />
         <Route path="prontuarios" element={<ProntuariosLista />} />
         <Route path="prontuarios/:id" element={<ProntuarioDetalhes />} />
-        <Route path="encaminhamentos" element={<EncaminhamentosPage />} />
+        <Route path="encaminhamentos" element={<Encaminhamentos />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
