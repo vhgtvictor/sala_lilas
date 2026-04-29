@@ -1,41 +1,84 @@
 import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-
-const patients = [
-  {
-    name: "Joana Almeida",
-    lastVisit: "18/04/2026",
-    status: "Ativo"
-  },
-  {
-    name: "Camila Ferreira",
-    lastVisit: "15/04/2026",
-    status: "Acompanhamento"
-  },
-  {
-    name: "Patrícia Silva",
-    lastVisit: "12/04/2026",
-    status: "Pendente"
-  },
-  {
-    name: "Luciana Barbosa",
-    lastVisit: "08/04/2026",
-    status: "Ativo"
-  }
-];
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function ProntuariosLista() {
   const [search, setSearch] = useState("");
+  const [pacientes, setPacientes] = useState([]);
+  const navigate = useNavigate();
+
+  const buscarPacientes = async () => {
+    const token = localStorage.getItem("sala_lilas_token");
+
+    if (!token) {
+      toast.error("Sessao expirada. Faca login novamente.");
+      navigate("/login");
+      return;
+    }
+
+    let response;
+    try {
+      response = await fetch("http://localhost:3000/api/pacientes", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    } catch (error) {
+      toast.error("Erro de conexão com o servidor.");
+      return;
+    }
+
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (error) {
+      toast.error("Erro ao processar resposta da API.");
+      return;
+    }
+
+    if (!responseData?.sucesso) {
+      toast.error(responseData?.mensagem || "Falha ao buscar pacientes.");
+      if (response.status === 401) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    setPacientes(Array.isArray(responseData?.dados) ? responseData.dados : []);
+  };
+
+  useEffect(() => {
+    buscarPacientes();
+  }, []);
 
   const filteredPatients = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) {
-      return patients;
+      return pacientes;
     }
 
-    return patients.filter((patient) => patient.name.toLowerCase().includes(query));
-  }, [search]);
+    return pacientes.filter((patient) =>
+      (patient.nome || "").toLowerCase().includes(query)
+    );
+  }, [search, pacientes]);
+
+  const getSituacaoPaciente = (patient) => {
+    const ultimoEncaminhamento = Array.isArray(patient.encaminhamentos)
+      ? patient.encaminhamentos[0]
+      : null;
+
+    if (ultimoEncaminhamento?.status === "FINALIZADO") {
+      return "Encerrado";
+    }
+
+    if (patient.prontuario) {
+      return "Com prontuario";
+    }
+
+    return "Somente agendamento";
+  };
 
   return (
     <section className="space-y-6">
@@ -72,24 +115,24 @@ export default function ProntuariosLista() {
           <thead>
             <tr className="border-b border-slate-200 text-left text-slate-600">
               <th className="px-3 py-2 font-semibold">Nome</th>
-              <th className="px-3 py-2 font-semibold">Último Atendimento</th>
-              <th className="px-3 py-2 font-semibold">Status</th>
+              <th className="px-3 py-2 font-semibold">CPF</th>
+              <th className="px-3 py-2 font-semibold">Situação</th>
               <th className="px-3 py-2 font-semibold">Ações</th>
             </tr>
           </thead>
           <tbody>
             {filteredPatients.map((patient) => (
-              <tr key={patient.name} className="border-b border-slate-100">
-                <td className="px-3 py-2 font-medium text-slate-800">{patient.name}</td>
-                <td className="px-3 py-2 text-slate-600">{patient.lastVisit}</td>
+              <tr key={patient.id} className="border-b border-slate-100">
+                <td className="px-3 py-2 font-medium text-slate-800">{patient.nome}</td>
+                <td className="px-3 py-2 text-slate-600">{patient.cpf}</td>
                 <td className="px-3 py-2">
                   <span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">
-                    {patient.status}
+                    {getSituacaoPaciente(patient)}
                   </span>
                 </td>
                 <td className="px-3 py-2">
                   <Link
-                    to={`/painel/prontuarios/${encodeURIComponent(patient.name)}`}
+                    to={`/painel/prontuarios/${patient.id}`}
                     className="inline-block rounded-md bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-700"
                   >
                     Ver Detalhes

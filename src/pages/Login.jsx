@@ -1,12 +1,23 @@
 import { LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const perfilMap = {
+  ATENDENTE: "Atendente",
+  NPJ: "NPJ",
+  PSICOLOGIA: "Psicologia",
+  EQUIPE_TECNICA: "Equipe Técnica"
+};
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const { setProfile } = useAuth();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
@@ -14,7 +25,49 @@ export default function Login() {
       return;
     }
 
-    toast.success("Login simulado com sucesso!");
+    let response;
+    try {
+      response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          senha: password
+        })
+      });
+    } catch (error) {
+      toast.error("Erro de conexão com o servidor.");
+      return;
+    }
+
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (error) {
+      toast.error("Erro de conexão com o servidor.");
+      return;
+    }
+
+    if (!responseData?.sucesso) {
+      toast.error(responseData?.mensagem || "Falha ao realizar login.");
+      return;
+    }
+
+    const token = responseData?.dados?.token;
+    const perfilBackend = responseData?.dados?.usuario?.perfil;
+    const perfilFrontend = perfilMap[perfilBackend];
+
+    if (!token || !perfilFrontend) {
+      toast.error("Resposta de autenticacao invalida.");
+      return;
+    }
+
+    localStorage.setItem("sala_lilas_token", token);
+    setProfile(perfilFrontend);
+    toast.success(responseData?.mensagem || "Login realizado com sucesso.");
+    navigate("/painel");
   };
 
   return (

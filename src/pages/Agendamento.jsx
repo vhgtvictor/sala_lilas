@@ -1,32 +1,55 @@
-import { CalendarDays, Clock3, Phone, UserRound } from "lucide-react";
+import { CalendarDays, Clock3, Fingerprint, UserRound } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 const initialForm = {
-  fullName: "",
-  phone: "",
-  date: "",
-  time: ""
+  nome: "",
+  cpf: "",
+  dataNascimento: "",
+  dataDesejada: "",
+  horario: ""
 };
+
+function aplicarMascaraCPF(valor) {
+  const numeros = valor.replace(/\D/g, "");
+  const parte1 = numeros.slice(0, 3);
+  const parte2 = numeros.slice(3, 6);
+  const parte3 = numeros.slice(6, 9);
+  const parte4 = numeros.slice(9, 11);
+
+  let cpfFormatado = parte1;
+  if (parte2) cpfFormatado += `.${parte2}`;
+  if (parte3) cpfFormatado += `.${parte3}`;
+  if (parte4) cpfFormatado += `-${parte4}`;
+
+  return cpfFormatado;
+}
 
 export default function Agendamento() {
   const [formData, setFormData] = useState(initialForm);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const newValue = name === "cpf" ? aplicarMascaraCPF(value) : value;
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const { fullName, phone, date, time } = formData;
-    if (!fullName.trim() || !phone.trim() || !date || !time) {
+    const { nome, cpf, dataNascimento, dataDesejada, horario } = formData;
+
+    if (!nome.trim() || !cpf.trim() || !dataNascimento || !dataDesejada || !horario) {
       toast.error("Por favor, preencha todos os dados para o agendamento.");
       return;
     }
 
-    const selectedDate = new Date(`${date}T00:00:00`);
+    if (cpf.length < 14) {
+      toast.error("Por favor, digite um CPF válido");
+      return;
+    }
+
+    const selectedDate = new Date(`${dataDesejada}T00:00:00`);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -35,7 +58,40 @@ export default function Agendamento() {
       return;
     }
 
-    toast.success("Agendamento pré-aprovado com sucesso! Entraremos em contato.");
+    let response;
+    try {
+      response = await fetch("http://localhost:3000/api/agendamentos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nome: nome.trim(),
+          cpf: cpf.trim(),
+          dataNascimento,
+          dataDesejada,
+          horario
+        })
+      });
+    } catch (error) {
+      toast.error("Erro de conexão com o servidor. Tente novamente mais tarde.");
+      return;
+    }
+
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (error) {
+      toast.error("Erro de conexão com o servidor. Tente novamente mais tarde.");
+      return;
+    }
+
+    if (!responseData?.sucesso) {
+      toast.error(responseData?.mensagem || "Nao foi possivel realizar o agendamento.");
+      return;
+    }
+
+    toast.success("Agendamento confirmado!");
     setFormData(initialForm);
   };
 
@@ -61,8 +117,8 @@ export default function Agendamento() {
               />
               <input
                 type="text"
-                name="fullName"
-                value={formData.fullName}
+                name="nome"
+                value={formData.nome}
                 onChange={handleChange}
                 placeholder="Digite seu nome completo"
                 className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
@@ -72,25 +128,45 @@ export default function Agendamento() {
 
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-slate-700">
-              Telefone (ou WhatsApp)
+              CPF
             </span>
             <div className="relative">
-              <Phone
+              <Fingerprint
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                 size={18}
               />
               <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
+                type="text"
+                name="cpf"
+                value={formData.cpf}
                 onChange={handleChange}
-                placeholder="(00) 00000-0000"
+                maxLength={14}
+                placeholder="000.000.000-00"
                 className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               />
             </div>
           </label>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">
+                Data de Nascimento
+              </span>
+              <div className="relative">
+                <CalendarDays
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={18}
+                />
+                <input
+                  type="date"
+                  name="dataNascimento"
+                  value={formData.dataNascimento}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                />
+              </div>
+            </label>
+
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium text-slate-700">
                 Data Desejada
@@ -102,8 +178,8 @@ export default function Agendamento() {
                 />
                 <input
                   type="date"
-                  name="date"
-                  value={formData.date}
+                  name="dataDesejada"
+                  value={formData.dataDesejada}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                 />
@@ -121,8 +197,8 @@ export default function Agendamento() {
                 />
                 <input
                   type="time"
-                  name="time"
-                  value={formData.time}
+                  name="horario"
+                  value={formData.horario}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                 />

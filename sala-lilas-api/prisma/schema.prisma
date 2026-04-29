@@ -77,8 +77,8 @@ model Prontuario {
   id            Int       @id @default(autoincrement())
   pacienteId    Int       @unique
   evolucaoGeral String
-  obsPsicologia String
-  statusJuridico String
+  obsPsicologia String?
+  statusJuridico String?
   criadoEm      DateTime  @default(now())
   atualizadoEm  DateTime  @updatedAt
 
