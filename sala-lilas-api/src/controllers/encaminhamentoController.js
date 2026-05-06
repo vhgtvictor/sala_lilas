@@ -2,17 +2,25 @@ const prisma = require("../../config/prismaClient");
 
 async function listarEncaminhamentos(req, res, next) {
   try {
+    // Captura o parâmetro de query para incluir finalizados
+    const { incluirFinalizados } = req.query;
+
+    // Constrói a condição de filtro dinamicamente
+    const whereCondition = 
+      incluirFinalizados === "true"
+        ? {} // Se incluirFinalizados for 'true', não aplica filtro de status
+        : {
+            status: {
+              not: "FINALIZADO" // Caso contrário, filtra os finalizados
+            }
+          };
+
     const encaminhamentos = await prisma.encaminhamento.findMany({
-      where: {
-        status: {
-          not: "FINALIZADO"
-        }
-      },
+      where: whereCondition,
       include: {
         paciente: {
-          select: {
-            nome: true,
-            cpf: true
+          include: {
+            prontuario: true
           }
         }
       },

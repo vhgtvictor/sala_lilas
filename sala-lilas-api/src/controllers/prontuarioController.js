@@ -46,6 +46,23 @@ async function salvarProntuario(req, res, next) {
   }
 }
 
+async function obterProntuario(req, res, next) {
+  try {
+    const { pacienteId } = req.params;
+    const prontuario = await prisma.prontuario.findUnique({
+      where: { pacienteId: Number(pacienteId) }
+    });
+
+    return res.status(200).json({
+      sucesso: true,
+      dados: prontuario ?? null
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
-  salvarProntuario
+  salvarProntuario,
+  obterProntuario
 };

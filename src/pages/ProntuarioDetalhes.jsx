@@ -121,6 +121,69 @@ export default function ProntuarioDetalhes() {
     setIsDirty(true);
   };
 
+  const carregarDadosSalvos = async () => {
+    if (!pacienteId) {
+      return;
+    }
+
+    const token = localStorage.getItem("sala_lilas_token");
+    if (!token) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/prontuarios/${pacienteId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const responseData = await response.json();
+      if (!responseData?.sucesso || !responseData?.dados) {
+        return;
+      }
+
+      const {
+        evolucaoGeral = "",
+        obsPsicologia = "",
+        statusJuridico = ""
+      } = responseData.dados;
+
+      let statusProcesso = "";
+      let encaminhamentosLegais = "";
+
+      if (typeof statusJuridico === "string" && statusJuridico.trim()) {
+        const match = statusJuridico.match(/Status:\s*([\s\S]*?)\s*Encaminhamentos:\s*([\s\S]*)/i);
+        if (match) {
+          statusProcesso = match[1].trim();
+          encaminhamentosLegais = match[2].trim();
+        } else {
+          encaminhamentosLegais = statusJuridico.trim();
+        }
+      }
+
+      setFormData({
+        evolucaoGeral,
+        obsPsicologia,
+        statusProcesso,
+        encaminhamentosLegais
+      });
+    } catch (error) {
+      toast.error("Erro ao carregar o prontuário salvo.");
+    }
+  };
+
+  useEffect(() => {
+    if (!pacienteId) {
+      return;
+    }
+
+    carregarDadosSalvos();
+  }, [pacienteId, navigate]);
+
   // Agora recebe a flag de rascunho via parâmetro
   const salvarProntuario = async (isRascunhoParam) => {
     if (!pacienteId) {

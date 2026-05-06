@@ -1,10 +1,15 @@
-import { AlertCircle, ArrowRight, User } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import CardKanban from "../components/CardKanban";
 
 export default function Encaminhamentos() {
   const [encaminhamentos, setEncaminhamentos] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [mostrarFinalizados, setMostrarFinalizados] = useState(false);
+
+  const SETOR_PSICOLOGIA = "PSICOLOGIA";
+  const SETOR_NPJ = "NPJ";
 
   // 1. Função para buscar os dados reais no Backend
   const buscarEncaminhamentos = async () => {
@@ -15,7 +20,7 @@ export default function Encaminhamentos() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/encaminhamentos", {
+      const response = await fetch(`http://localhost:3000/api/encaminhamentos?incluirFinalizados=${mostrarFinalizados}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -34,27 +39,27 @@ export default function Encaminhamentos() {
     }
   };
 
-  // Roda a busca assim que a tela abre
+  // Roda a busca assim que a tela abre ou quando mostrarFinalizados muda
   useEffect(() => {
     buscarEncaminhamentos();
-  }, []);
+  }, [mostrarFinalizados]);
 
   // 2. Função para mover o card (PUT na API)
   const handleMoverFila = async (id, setorAtual, statusAtual) => {
     const token = localStorage.getItem("sala_lilas_token");
 
     let novoStatus = "EM_ATENDIMENTO";
-    let novoSetor = "PSICOLOGIA";
+    let novoSetor = SETOR_PSICOLOGIA;
 
     if (statusAtual === "AGUARDANDO") {
       novoStatus = "EM_ATENDIMENTO";
-      novoSetor = "PSICOLOGIA";
-    } else if (statusAtual === "EM_ATENDIMENTO" && setorAtual === "PSICOLOGIA") {
+      novoSetor = SETOR_PSICOLOGIA;
+    } else if (statusAtual === "EM_ATENDIMENTO" && setorAtual === SETOR_PSICOLOGIA) {
       novoStatus = "EM_ATENDIMENTO";
-      novoSetor = "NPJ";
-    } else if (statusAtual === "EM_ATENDIMENTO" && setorAtual === "NPJ") {
+      novoSetor = SETOR_NPJ;
+    } else if (statusAtual === "EM_ATENDIMENTO" && setorAtual === SETOR_NPJ) {
       novoStatus = "FINALIZADO";
-      novoSetor = "NPJ";
+      novoSetor = SETOR_NPJ;
     }
 
     try {
@@ -87,38 +92,12 @@ export default function Encaminhamentos() {
   // 3. Distribuição das Colunas (Filtros)
   const filaAguardando = encaminhamentos.filter((e) => e.status === "AGUARDANDO");
   const filaPsicologia = encaminhamentos.filter(
-    (e) => e.status === "EM_ATENDIMENTO" && e.setorDestino === "PSICOLOGIA"
+    (e) => e.status === "EM_ATENDIMENTO" && e.setorDestino === SETOR_PSICOLOGIA
   );
   const filaNPJ = encaminhamentos.filter(
-    (e) => e.status === "EM_ATENDIMENTO" && e.setorDestino === "NPJ"
+    (e) => e.status === "EM_ATENDIMENTO" && e.setorDestino === SETOR_NPJ
   );
-
-  // Componente interno do Card para não repetirmos código
-  const CardPaciente = ({ paciente, setorDestino, prioridade, id, status }) => (
-    <div className="mb-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md">
-      <div className="mb-3 flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <div className="rounded-full bg-purple-100 p-2 text-purple-700">
-            <User size={18} />
-          </div>
-          <div>
-            <p className="font-semibold text-slate-800">{paciente.nome}</p>
-            <p className="text-xs text-slate-500">CPF: {paciente.cpf}</p>
-          </div>
-        </div>
-        {prioridade === "ALTA" && (
-          <AlertCircle size={18} className="text-red-500" title="Prioridade Alta" />
-        )}
-      </div>
-      <button
-        onClick={() => handleMoverFila(id, setorDestino, status)}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-purple-50 py-2 text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-100 hover:text-purple-800"
-      >
-        {status === "AGUARDANDO" ? "Iniciar Atendimento" : "Finalizar Etapa"}
-        <ArrowRight size={16} />
-      </button>
-    </div>
-  );
+  const filaFinalizados = encaminhamentos.filter((e) => e.status === "FINALIZADO");
 
   if (carregando) {
     return <div className="flex h-full items-center justify-center text-purple-700">Carregando quadro...</div>;
@@ -126,13 +105,36 @@ export default function Encaminhamentos() {
 
   return (
     <div className="h-full">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Quadro de Encaminhamentos</h1>
-        <p className="text-slate-600">Gestão de fluxo entre os setores da Sala Lilás.</p>
+      <header className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Quadro de Encaminhamentos</h1>
+          <p className="text-slate-600">Gestão de fluxo entre os setores da Sala Lilás.</p>
+        </div>
+        <button
+          onClick={() => setMostrarFinalizados(!mostrarFinalizados)}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 font-semibold transition-colors ${
+            mostrarFinalizados
+              ? "bg-red-100 text-red-700 hover:bg-red-200"
+              : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+          }`}
+          title={mostrarFinalizados ? "Ocultar encaminhamentos finalizados" : "Mostrar encaminhamentos finalizados"}
+        >
+          {mostrarFinalizados ? (
+            <>
+              <EyeOff size={18} />
+              Ocultar Finalizados
+            </>
+          ) : (
+            <>
+              <Eye size={18} />
+              Mostrar Finalizados
+            </>
+          )}
+        </button>
       </header>
 
       {/* Grid do Kanban */}
-      <div className="grid h-[calc(100vh-200px)] grid-cols-1 gap-6 md:grid-cols-3">
+      <div className={`grid h-[calc(100vh-200px)] gap-6 ${mostrarFinalizados ? 'md:grid-cols-4' : 'md:grid-cols-3'} grid-cols-1`}>
         
         {/* Coluna 1: Aguardando */}
         <div className="flex flex-col rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -144,7 +146,7 @@ export default function Encaminhamentos() {
           </div>
           <div className="flex-1 overflow-y-auto pr-2">
             {filaAguardando.map((item) => (
-              <CardPaciente key={item.id} {...item} />
+              <CardKanban key={item.id} {...item} onMover={handleMoverFila} />
             ))}
             {filaAguardando.length === 0 && (
               <p className="text-center text-sm text-slate-400 mt-4">Nenhum paciente aguardando.</p>
@@ -162,7 +164,7 @@ export default function Encaminhamentos() {
           </div>
           <div className="flex-1 overflow-y-auto pr-2">
             {filaPsicologia.map((item) => (
-              <CardPaciente key={item.id} {...item} />
+              <CardKanban key={item.id} {...item} onMover={handleMoverFila} />
             ))}
             {filaPsicologia.length === 0 && (
               <p className="text-center text-sm text-purple-400/70 mt-4">Fila vazia.</p>
@@ -180,13 +182,33 @@ export default function Encaminhamentos() {
           </div>
           <div className="flex-1 overflow-y-auto pr-2">
             {filaNPJ.map((item) => (
-              <CardPaciente key={item.id} {...item} />
+              <CardKanban key={item.id} {...item} onMover={handleMoverFila} />
             ))}
             {filaNPJ.length === 0 && (
               <p className="text-center text-sm text-blue-400/70 mt-4">Fila vazia.</p>
             )}
           </div>
         </div>
+
+        {/* Coluna 4: Finalizados (condicional) */}
+        {mostrarFinalizados && (
+          <div className="flex flex-col rounded-xl border border-green-200 bg-green-50/50 p-4">
+            <div className="mb-4 flex items-center justify-between border-b border-green-200 pb-2">
+              <h2 className="font-semibold text-green-800">Finalizados</h2>
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-200 text-xs font-bold text-green-800">
+                {filaFinalizados.length}
+              </span>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-2">
+              {filaFinalizados.map((item) => (
+                <CardKanban key={item.id} {...item} onMover={handleMoverFila} />
+              ))}
+              {filaFinalizados.length === 0 && (
+                <p className="text-center text-sm text-green-400/70 mt-4">Nenhum finalizado.</p>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

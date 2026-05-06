@@ -5,6 +5,7 @@ import ProtectedPanelRoute from "./components/ProtectedPanelRoute";
 import Agendamento from "./pages/Agendamento";
 import DashboardInicio from "./pages/DashboardInicio";
 import Encaminhamentos from "./pages/Encaminhamentos";
+import GestaoUsuarios from "./pages/GestaoUsuarios";
 import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import ProntuarioDetalhes from "./pages/ProntuarioDetalhes";
@@ -42,8 +43,16 @@ export default function App() {
         <Route
           path="relatorios"
           element={
-            <ProtectedPanelRoute allowedProfiles={["Equipe Técnica"]}>
+            <ProtectedPanelRoute allowedProfiles={["Equipe Técnica", "Administrador"]}>
               <Relatorios />
+            </ProtectedPanelRoute>
+          }
+        />
+        <Route
+          path="usuarios"
+          element={
+            <ProtectedPanelRoute allowedProfiles={["Equipe Técnica", "Administrador"]}>
+              <GestaoUsuarios />
             </ProtectedPanelRoute>
           }
         />

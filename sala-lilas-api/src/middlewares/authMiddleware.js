@@ -23,8 +23,11 @@ function authMiddleware(req, res, next) {
   try {
     const decoded = jwt.verify(token, secret);
     req.usuario = decoded;
+    req.usuarioId = decoded.sub;
+    console.log("[authMiddleware] Token verificado - usuarioId:", req.usuarioId, "email:", decoded.email);
     return next();
   } catch (error) {
+    console.error("[authMiddleware] Erro ao verificar token:", error.message);
     return res.status(401).json({
       sucesso: false,
       mensagem: "Sessão inválida ou expirada.",
@@ -33,4 +36,21 @@ function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware;
+function checkRole(allowedRoles = []) {
+  return (req, res, next) => {
+    if (!req.usuario || !allowedRoles.includes(req.usuario.perfil)) {
+      return res.status(403).json({
+        sucesso: false,
+        mensagem: "Acesso negado. Seu perfil não tem permissão.",
+        dados: null
+      });
+    }
+
+    return next();
+  };
+}
+
+module.exports = {
+  authMiddleware,
+  checkRole
+};

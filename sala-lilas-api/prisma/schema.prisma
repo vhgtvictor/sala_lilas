@@ -16,11 +16,13 @@ enum PerfilUsuario {
   NPJ
   PSICOLOGIA
   EQUIPE_TECNICA
+  ADMINISTRADOR
 }
 
 enum StatusAgendamento {
   PENDENTE
   CONFIRMADO
+  ATENDIDO
   CANCELADO
 }
 
@@ -41,12 +43,14 @@ enum PrioridadeEncaminhamento {
 }
 
 model Usuario {
-  id       Int           @id @default(autoincrement())
-  nome     String
-  email    String        @unique
-  senha    String
-  perfil   PerfilUsuario
-  criadoEm DateTime      @default(now())
+  id                 Int           @id @default(autoincrement())
+  nome               String
+  email              String        @unique
+  senha              String
+  perfil             PerfilUsuario
+  criadoEm           DateTime      @default(now())
+  termosAceitos      Boolean       @default(false)
+  dataAceiteTermos   DateTime?
 }
 
 model Paciente {

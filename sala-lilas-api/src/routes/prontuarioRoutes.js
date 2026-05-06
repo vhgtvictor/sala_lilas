@@ -1,8 +1,9 @@
 const express = require("express");
-const { salvarProntuario } = require("../controllers/prontuarioController");
+const { salvarProntuario, obterProntuario } = require("../controllers/prontuarioController");
 
 const router = express.Router();
 
+router.get("/:pacienteId", obterProntuario);
 router.post("/:pacienteId", salvarProntuario);
 
 module.exports = router;

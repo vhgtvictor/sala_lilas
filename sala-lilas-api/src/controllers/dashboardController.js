@@ -56,7 +56,9 @@ async function obterDadosDashboard(req, res, next) {
     const proximos = proximosAgendamentos.map((agendamento) => ({
       id: agendamento.id,
       nome: agendamento.paciente.nome,
-      horario: agendamento.horario
+      horario: agendamento.horario,
+      status: agendamento.status,
+      dataDesejada: agendamento.dataDesejada
     }));
 
     return res.json({

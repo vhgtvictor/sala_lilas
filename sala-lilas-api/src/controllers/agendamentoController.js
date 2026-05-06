@@ -74,6 +74,31 @@ async function criarAgendamento(req, res, next) {
   }
 }
 
+async function atualizarStatusExpress(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ erro: "Status não enviado" });
+    }
+
+    const agendamentoAtualizado = await prisma.agendamento.update({
+      where: { id: Number(id) },
+      data: { status }
+    });
+
+    return res.status(200).json({
+      sucesso: true,
+      mensagem: "Status do agendamento atualizado com sucesso.",
+      dados: agendamentoAtualizado
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
-  criarAgendamento
+  criarAgendamento,
+  atualizarStatusExpress
 };

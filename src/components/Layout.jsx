@@ -1,12 +1,11 @@
 import { NavLink, Outlet } from "react-router-dom";
-import ProfileSimulator from "./ProfileSimulator";
 
 const navItems = [
   { to: "/", label: "Início" },
-  { to: "/login", label: "Login" },
-  { to: "/agendamento", label: "Agendamento" },
-  { to: "/painel", label: "Painel" }
+  { to: "/agendamento", label: "Agendamento" }
 ];
+
+const loginNavItem = { to: "/login", label: "Login" };
 
 export default function Layout() {
   return (
@@ -32,7 +31,18 @@ export default function Layout() {
             ))}
           </div>
 
-          <ProfileSimulator />
+          <div>
+            <NavLink
+              to={loginNavItem.to}
+              className={({ isActive }) =>
+                isActive
+                  ? "rounded-md px-3 py-1.5 text-sm font-semibold text-white"
+                  : "rounded-md px-3 py-1.5 text-sm font-semibold text-purple-100 transition hover:bg-purple-500 hover:text-white"
+              }
+            >
+              {loginNavItem.label}
+            </NavLink>
+          </div>
         </nav>
       </header>
 

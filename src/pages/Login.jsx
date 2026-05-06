@@ -4,18 +4,11 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const perfilMap = {
-  ATENDENTE: "Atendente",
-  NPJ: "NPJ",
-  PSICOLOGIA: "Psicologia",
-  EQUIPE_TECNICA: "Equipe Técnica"
-};
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { setProfile } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -56,16 +49,20 @@ export default function Login() {
     }
 
     const token = responseData?.dados?.token;
-    const perfilBackend = responseData?.dados?.usuario?.perfil;
-    const perfilFrontend = perfilMap[perfilBackend];
+    const usuario = responseData?.dados?.usuario;
 
-    if (!token || !perfilFrontend) {
+    if (!token || !usuario) {
       toast.error("Resposta de autenticacao invalida.");
       return;
     }
 
-    localStorage.setItem("sala_lilas_token", token);
-    setProfile(perfilFrontend);
+    try {
+      login(token, usuario);
+    } catch (error) {
+      toast.error("Resposta de autenticacao invalida.");
+      return;
+    }
+
     toast.success(responseData?.mensagem || "Login realizado com sucesso.");
     navigate("/painel");
   };
